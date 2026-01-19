@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import {
   LayoutDashboard,
   Building2,
   Calendar,
+  CalendarDays,
   Newspaper,
   Brain,
   Settings,
@@ -16,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import ThemeToggle from '@/components/ThemeToggle';
 import logo from '@/assets/logo.png';
 import { cn } from '@/lib/utils';
 
@@ -23,6 +25,7 @@ const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Overview', end: true },
   { to: '/dashboard/clients', icon: Building2, label: 'Clients' },
   { to: '/dashboard/meetings', icon: Calendar, label: 'Meetings' },
+  { to: '/dashboard/calendar', icon: CalendarDays, label: 'Calendar' },
   { to: '/dashboard/news', icon: Newspaper, label: 'News & Intel' },
   { to: '/dashboard/ai-briefs', icon: Brain, label: 'AI Briefs' },
   { to: '/dashboard/settings', icon: Settings, label: 'Settings' },
@@ -143,6 +146,7 @@ const DashboardLayout = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <Button variant="ghost" size="icon" className="relative">
               <Bell size={18} />
               <span className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full" />
