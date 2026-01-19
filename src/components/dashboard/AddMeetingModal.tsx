@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -105,6 +105,9 @@ const AddMeetingModal = ({ onSuccess, preselectedCompanyId }: AddMeetingModalPro
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Schedule New Meeting</DialogTitle>
+          <DialogDescription>
+            Set up a new meeting with your client.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
