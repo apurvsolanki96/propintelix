@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
 import MeetingCard from '@/components/dashboard/MeetingCard';
 import AddMeetingModal from '@/components/dashboard/AddMeetingModal';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Calendar, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Calendar, CalendarDays, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const MeetingsPage = () => {
@@ -85,7 +86,18 @@ const MeetingsPage = () => {
             Schedule and manage your client meetings
           </p>
         </div>
-        <AddMeetingModal onSuccess={fetchMeetings} />
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/dashboard/calendar')}
+            className="gap-1"
+          >
+            <CalendarDays size={16} />
+            Calendar View
+          </Button>
+          <AddMeetingModal onSuccess={fetchMeetings} />
+        </div>
       </div>
 
       {loading ? (

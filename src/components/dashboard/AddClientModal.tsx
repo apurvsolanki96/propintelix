@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Loader2 } from 'lucide-react';
+import { Plus, Loader2, Mail, Phone } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -40,6 +40,8 @@ const AddClientModal = ({ onSuccess }: AddClientModalProps) => {
     website: '',
     employee_count: '',
     description: '',
+    email: '',
+    contact_number: '',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -60,6 +62,8 @@ const AddClientModal = ({ onSuccess }: AddClientModalProps) => {
         website: formData.website || null,
         employee_count: formData.employee_count || null,
         description: formData.description || null,
+        email: formData.email || null,
+        contact_number: formData.contact_number || null,
       });
 
       if (error) throw error;
@@ -73,6 +77,8 @@ const AddClientModal = ({ onSuccess }: AddClientModalProps) => {
         website: '',
         employee_count: '',
         description: '',
+        email: '',
+        contact_number: '',
       });
       onSuccess();
     } catch (error: any) {
@@ -127,6 +133,38 @@ const AddClientModal = ({ onSuccess }: AddClientModalProps) => {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={14} />
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="contact@company.com"
+                  className="pl-9"
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="contact_number">Phone</Label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={14} />
+                <Input
+                  id="contact_number"
+                  name="contact_number"
+                  value={formData.contact_number}
+                  onChange={handleChange}
+                  placeholder="+91 98765 43210"
+                  className="pl-9"
+                />
+              </div>
+            </div>
           </div>
 
           <div>
