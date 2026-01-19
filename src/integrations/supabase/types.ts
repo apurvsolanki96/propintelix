@@ -14,7 +14,313 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      ai_briefs: {
+        Row: {
+          brief_type: string | null
+          company_id: string | null
+          content: Json
+          generated_at: string
+          id: string
+          meeting_id: string | null
+          user_id: string
+        }
+        Insert: {
+          brief_type?: string | null
+          company_id?: string | null
+          content: Json
+          generated_at?: string
+          id?: string
+          meeting_id?: string | null
+          user_id: string
+        }
+        Update: {
+          brief_type?: string | null
+          company_id?: string | null
+          content?: Json
+          generated_at?: string
+          id?: string
+          meeting_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_briefs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_briefs_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_requirements: {
+        Row: {
+          area_sqft: string | null
+          budget: string | null
+          company_id: string | null
+          created_at: string
+          id: string
+          location: string | null
+          notes: string | null
+          requirement_type: string
+          status: string | null
+          timeline: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          area_sqft?: string | null
+          budget?: string | null
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          requirement_type: string
+          status?: string | null
+          timeline?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          area_sqft?: string | null
+          budget?: string | null
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          requirement_type?: string
+          status?: string | null
+          timeline?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_requirements_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      companies: {
+        Row: {
+          created_at: string
+          description: string | null
+          employee_count: string | null
+          headquarters: string | null
+          id: string
+          name: string
+          revenue: string | null
+          sector: string | null
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          employee_count?: string | null
+          headquarters?: string | null
+          id?: string
+          name: string
+          revenue?: string | null
+          sector?: string | null
+          updated_at?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          employee_count?: string | null
+          headquarters?: string | null
+          id?: string
+          name?: string
+          revenue?: string | null
+          sector?: string | null
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      demo_requests: {
+        Row: {
+          company_name: string | null
+          company_size: string | null
+          created_at: string
+          email: string
+          id: string
+          message: string | null
+          name: string
+          phone: string | null
+          role: string | null
+          status: string | null
+        }
+        Insert: {
+          company_name?: string | null
+          company_size?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          message?: string | null
+          name: string
+          phone?: string | null
+          role?: string | null
+          status?: string | null
+        }
+        Update: {
+          company_name?: string | null
+          company_size?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string | null
+          name?: string
+          phone?: string | null
+          role?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      meetings: {
+        Row: {
+          agenda: string | null
+          attendees: string[] | null
+          company_id: string | null
+          created_at: string
+          id: string
+          location: string | null
+          meeting_date: string
+          notes: string | null
+          status: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agenda?: string | null
+          attendees?: string[] | null
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          location?: string | null
+          meeting_date: string
+          notes?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agenda?: string | null
+          attendees?: string[] | null
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          location?: string | null
+          meeting_date?: string
+          notes?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meetings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      news_items: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          published_at: string | null
+          relevance_sectors: string[] | null
+          source: string | null
+          summary: string | null
+          title: string
+          url: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          published_at?: string | null
+          relevance_sectors?: string[] | null
+          source?: string | null
+          summary?: string | null
+          title: string
+          url?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          published_at?: string | null
+          relevance_sectors?: string[] | null
+          source?: string | null
+          summary?: string | null
+          title?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          company_name: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          phone: string | null
+          plan: string | null
+          role: string | null
+          trial_ends_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_name?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          plan?: string | null
+          role?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_name?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          plan?: string | null
+          role?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
