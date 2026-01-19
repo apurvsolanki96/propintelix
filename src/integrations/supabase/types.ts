@@ -114,8 +114,10 @@ export type Database = {
       }
       companies: {
         Row: {
+          contact_number: string | null
           created_at: string
           description: string | null
+          email: string | null
           employee_count: string | null
           headquarters: string | null
           id: string
@@ -124,11 +126,15 @@ export type Database = {
           sector: string | null
           updated_at: string
           user_id: string
+          verification_token: string | null
+          verified: boolean | null
           website: string | null
         }
         Insert: {
+          contact_number?: string | null
           created_at?: string
           description?: string | null
+          email?: string | null
           employee_count?: string | null
           headquarters?: string | null
           id?: string
@@ -137,11 +143,15 @@ export type Database = {
           sector?: string | null
           updated_at?: string
           user_id: string
+          verification_token?: string | null
+          verified?: boolean | null
           website?: string | null
         }
         Update: {
+          contact_number?: string | null
           created_at?: string
           description?: string | null
+          email?: string | null
           employee_count?: string | null
           headquarters?: string | null
           id?: string
@@ -150,6 +160,8 @@ export type Database = {
           sector?: string | null
           updated_at?: string
           user_id?: string
+          verification_token?: string | null
+          verified?: boolean | null
           website?: string | null
         }
         Relationships: []
