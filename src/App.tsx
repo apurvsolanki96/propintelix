@@ -24,6 +24,11 @@ import CalendarViewPage from "./pages/dashboard/CalendarViewPage";
 import NewsPage from "./pages/dashboard/NewsPage";
 import AIBriefsPage from "./pages/dashboard/AIBriefsPage";
 import SettingsPage from "./pages/dashboard/SettingsPage";
+import ProfilePage from "./pages/dashboard/ProfilePage";
+import AnalyticsPage from "./pages/dashboard/AnalyticsPage";
+import RequirementsPage from "./pages/dashboard/RequirementsPage";
+import DataExportPage from "./pages/dashboard/DataExportPage";
+import AIAgentsPage from "./pages/dashboard/AIAgentsPage";
 
 const queryClient = new QueryClient();
 
@@ -58,8 +63,13 @@ const App = () => (
                 <Route path="clients/:id" element={<ClientDetailPage />} />
                 <Route path="meetings" element={<MeetingsPage />} />
                 <Route path="calendar" element={<CalendarViewPage />} />
+                <Route path="requirements" element={<RequirementsPage />} />
+                <Route path="analytics" element={<AnalyticsPage />} />
                 <Route path="news" element={<NewsPage />} />
                 <Route path="ai-briefs" element={<AIBriefsPage />} />
+                <Route path="ai-agents" element={<AIAgentsPage />} />
+                <Route path="export" element={<DataExportPage />} />
+                <Route path="profile" element={<ProfilePage />} />
                 <Route path="settings" element={<SettingsPage />} />
               </Route>
               <Route path="*" element={<NotFound />} />

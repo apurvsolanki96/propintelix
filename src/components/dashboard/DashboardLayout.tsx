@@ -13,11 +13,16 @@ import {
   Menu,
   X,
   ChevronRight,
-  Bell,
+  BarChart3,
+  FileText,
+  Download,
+  Sparkles,
+  User,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import ThemeToggle from '@/components/ThemeToggle';
+import NotificationsDropdown from '@/components/dashboard/NotificationsDropdown';
 import logo from '@/assets/logo.png';
 import { cn } from '@/lib/utils';
 
@@ -26,9 +31,13 @@ const navItems = [
   { to: '/dashboard/clients', icon: Building2, label: 'Clients' },
   { to: '/dashboard/meetings', icon: Calendar, label: 'Meetings' },
   { to: '/dashboard/calendar', icon: CalendarDays, label: 'Calendar' },
+  { to: '/dashboard/requirements', icon: FileText, label: 'Requirements' },
+  { to: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
   { to: '/dashboard/news', icon: Newspaper, label: 'News & Intel' },
   { to: '/dashboard/ai-briefs', icon: Brain, label: 'AI Briefs' },
-  { to: '/dashboard/settings', icon: Settings, label: 'Settings' },
+  { to: '/dashboard/ai-agents', icon: Sparkles, label: 'AI Agents' },
+  { to: '/dashboard/export', icon: Download, label: 'Export' },
+  { to: '/dashboard/profile', icon: User, label: 'Profile' },
 ];
 
 const DashboardLayout = () => {
@@ -147,10 +156,7 @@ const DashboardLayout = () => {
           </div>
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell size={18} />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full" />
-            </Button>
+            <NotificationsDropdown />
           </div>
         </header>
 
