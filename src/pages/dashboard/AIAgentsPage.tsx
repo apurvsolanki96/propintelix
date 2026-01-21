@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SoundButton } from '@/components/SoundButton';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import {
   Bot,
   Send,
@@ -22,32 +24,54 @@ import {
   Pause,
   User,
   TrendingUp,
+  ArrowRightLeft,
+  Users,
+  History,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import useSound from '@/hooks/useSound';
-
-interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-}
+import { useAgentChat, ChatMessage } from '@/hooks/useAgentChat';
+import { useAgentHandoff } from '@/hooks/useAgentHandoff';
+import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
+import { toast } from 'sonner';
 
 const AIAgentsPage = () => {
   const { playClick, playSuccess, playNotification } = useSound();
   const [activeAgent, setActiveAgent] = useState<'coordinator' | 'marketpulse' | 'coach'>('coordinator');
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: "Hello! I'm the PropIntelix AI Coordinator. I can help you with client onboarding, verification, and scheduling. How can I assist you today?",
-      timestamp: new Date(),
-    },
-  ]);
   const [inputMessage, setInputMessage] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
   const [coachSession, setCoachSession] = useState<'idle' | 'active' | 'completed'>('idle');
   const [coachScore, setCoachScore] = useState<any>(null);
+  const [showHandoffDialog, setShowHandoffDialog] = useState(false);
+  const [handoffReason, setHandoffReason] = useState('');
+  const [showHistoryDialog, setShowHistoryDialog] = useState(false);
+  const [selectedChatHistory, setSelectedChatHistory] = useState<ChatMessage[]>([]);
+
+  const { createNotification } = useRealtimeNotifications();
+  const { 
+    availableChats, 
+    pendingHandoffs, 
+    requestHandoff, 
+    acceptHandoff, 
+    getChatHistory 
+  } = useAgentHandoff();
+
+  const {
+    messages,
+    isTyping,
+    chatId,
+    sendMessage,
+    initializeChat,
+    evaluateSession,
+    clearMessages,
+    setInitialMessage,
+  } = useAgentChat({
+    agentType: activeAgent,
+    onNewMessage: (msg) => {
+      if (msg.role === 'assistant') {
+        playNotification();
+      }
+    },
+  });
 
   const agents = [
     {
@@ -57,6 +81,7 @@ const AIAgentsPage = () => {
       icon: Bot,
       color: 'bg-primary/10 text-primary',
       status: 'online',
+      greeting: "Hello! I'm the PropIntelix AI Coordinator. I can help you with client onboarding, verification, and scheduling. How can I assist you today?",
     },
     {
       id: 'marketpulse' as const,
@@ -65,6 +90,7 @@ const AIAgentsPage = () => {
       icon: Newspaper,
       color: 'bg-accent/10 text-accent',
       status: 'online',
+      greeting: "Welcome to Market Pulse AI! I provide daily market intelligence on commercial real estate trends, GCC activity, and policy updates across India. What would you like to know?",
     },
     {
       id: 'coach' as const,
@@ -73,95 +99,123 @@ const AIAgentsPage = () => {
       icon: Target,
       color: 'bg-purple-500/10 text-purple-500',
       status: 'online',
+      greeting: "Welcome to the Negotiation Coach! I'll be playing the role of a skeptical but friendly CFO of a large tech company. Your task is to pitch a premium office space. Start by clicking 'Start Practice' to begin your session!",
     },
   ];
 
-  const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return;
-
-    playClick();
-    const userMessage: ChatMessage = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: inputMessage,
-      timestamp: new Date(),
-    };
-    setChatMessages((prev) => [...prev, userMessage]);
-    setInputMessage('');
-    setIsTyping(true);
-
-    // Simulate AI response
-    setTimeout(() => {
-      const responses: Record<string, string[]> = {
-        coordinator: [
-          "I'll help you onboard this client. First, could you provide their company name and email address?",
-          "Great! I've initiated the verification process. The client will receive an email shortly. Once they reply with 'i verify', I'll schedule a meeting for the next business day.",
-          "The client has been verified! I've scheduled a meeting for tomorrow at 10 AM. I'm also preparing a briefing package with 2-4 property options near their preferred location.",
-          "I've found 3 excellent properties matching their requirements in BKC, Mumbai. The briefing package has been sent to both you and the client.",
-        ],
-        marketpulse: [
-          "Here's today's Market Pulse: GCC demand in Bengaluru has increased by 15% this quarter. Major MNCs like Google and Microsoft are actively scouting for additional office space.",
-          "Breaking: SEBI has announced new REIT regulations that could impact commercial property valuations. I recommend reviewing your portfolio positions.",
-          "Trend Alert: Co-working spaces in Pune are seeing a 22% surge in occupancy. This could be a good opportunity for your clients looking for flexible space solutions.",
-        ],
-        coach: [
-          "Let's start a practice session. I'll play the role of a skeptical CFO. Your goal is to pitch a premium office space in Hyderabad. Ready?",
-          "Interesting pitch! However, I'm concerned about the ROI given current market conditions. How would you address the 15% higher rental compared to our current location?",
-          "Good point about the talent attraction benefits. But what about the transition costs? Our current lease ends in 6 months.",
-        ],
-      };
-
-      const agentResponses = responses[activeAgent];
-      const randomResponse = agentResponses[Math.floor(Math.random() * agentResponses.length)];
-
-      const assistantMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: randomResponse,
-        timestamp: new Date(),
-      };
-      setChatMessages((prev) => [...prev, assistantMessage]);
-      setIsTyping(false);
-      playNotification();
-    }, 1500);
-  };
-
-  const startCoachSession = () => {
-    playClick();
-    setCoachSession('active');
-    setChatMessages([
-      {
+  // Initialize chat on agent change
+  useEffect(() => {
+    const currentAgent = agents.find(a => a.id === activeAgent);
+    if (currentAgent && activeAgent !== 'coach') {
+      clearMessages();
+      setInitialMessage({
         id: '1',
         role: 'assistant',
-        content: "Welcome to the Negotiation Coach! I'll be playing the role of a skeptical but friendly CFO of a large tech company. Your task is to pitch a premium office space in Hyderabad's HITEC City. Remember: stay professional, address objections with data, and build rapport. Let's begin - give me your opening pitch!",
+        content: currentAgent.greeting,
         timestamp: new Date(),
-      },
-    ]);
+      });
+    }
+  }, [activeAgent]);
+
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim() || isTyping) return;
+
+    playClick();
+    const message = inputMessage;
+    setInputMessage('');
+    await sendMessage(message);
   };
 
-  const endCoachSession = () => {
+  const startCoachSession = async () => {
+    playClick();
+    setCoachSession('active');
+    setCoachScore(null);
+    clearMessages();
+    setInitialMessage({
+      id: '1',
+      role: 'assistant',
+      content: "Welcome to the Negotiation Coach! I'll be playing the role of a skeptical but friendly CFO of a large tech company. Your task is to pitch a premium office space in Hyderabad's HITEC City. Remember: stay professional, address objections with data, and build rapport. Let's begin - give me your opening pitch!",
+      timestamp: new Date(),
+    });
+    await initializeChat();
+  };
+
+  const endCoachSession = async () => {
     playSuccess();
     setCoachSession('completed');
-    setCoachScore({
-      tone: 8,
-      objectionHandling: 7,
-      factUsage: 9,
-      overall: 8,
-      feedback: "Great use of market data when addressing the price concern. You could improve by acknowledging the CFO's budget constraints more empathetically before presenting counter-arguments. Your closing was strong - the ROI calculation was particularly effective.",
-    });
+    
+    const evaluation = await evaluateSession();
+    if (evaluation) {
+      setCoachScore(evaluation);
+      
+      // Create notification for session completion
+      createNotification(
+        'Coaching Session Complete',
+        `You scored ${evaluation.overall}/10 overall. ${evaluation.feedback?.slice(0, 100)}...`,
+        'success'
+      );
+    }
+  };
+
+  const handleRequestHandoff = async () => {
+    if (!chatId || !handoffReason.trim()) {
+      toast.error('Please provide a reason for the handoff');
+      return;
+    }
+
+    const success = await requestHandoff(chatId, handoffReason);
+    if (success) {
+      setShowHandoffDialog(false);
+      setHandoffReason('');
+      createNotification(
+        'Handoff Requested',
+        'Your chat has been marked for handoff. Another agent will take over.',
+        'info'
+      );
+    }
+  };
+
+  const handleViewHistory = async (chatIdToView: string) => {
+    const history = await getChatHistory(chatIdToView);
+    setSelectedChatHistory(history);
+    setShowHistoryDialog(true);
+  };
+
+  const handleAcceptHandoff = async (chat: any) => {
+    const handoff = pendingHandoffs.find(h => h.chatId === chat.id);
+    if (handoff) {
+      const success = await acceptHandoff(chat.id, handoff.id);
+      if (success) {
+        createNotification(
+          'Handoff Accepted',
+          `You have taken over the chat with ${chat.clientName}`,
+          'success'
+        );
+      }
+    }
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="font-display text-2xl font-bold flex items-center gap-2">
-          <Sparkles size={24} />
-          AI Agents
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          Intelligent assistants to automate your workflow
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-display text-2xl font-bold flex items-center gap-2">
+            <Sparkles size={24} />
+            AI Agents
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Intelligent assistants powered by AI
+          </p>
+        </div>
+        
+        {/* Handoff Notifications */}
+        {availableChats.length > 0 && (
+          <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-600">
+            <ArrowRightLeft size={14} className="mr-1" />
+            {availableChats.length} chats available for handoff
+          </Badge>
+        )}
       </div>
 
       {/* Agent Selection */}
@@ -175,18 +229,6 @@ const AIAgentsPage = () => {
             onClick={() => {
               playClick();
               setActiveAgent(agent.id);
-              if (agent.id !== 'coach') {
-                setChatMessages([
-                  {
-                    id: '1',
-                    role: 'assistant',
-                    content: agent.id === 'coordinator'
-                      ? "Hello! I'm the PropIntelix AI Coordinator. I can help you with client onboarding, verification, and scheduling. How can I assist you today?"
-                      : "Welcome to Market Pulse AI! I provide daily market intelligence on commercial real estate trends, GCC activity, and policy updates. What would you like to know?",
-                    timestamp: new Date(),
-                  },
-                ]);
-              }
               if (agent.id === 'coach') {
                 setCoachSession('idle');
                 setCoachScore(null);
@@ -227,32 +269,44 @@ const AIAgentsPage = () => {
                   <CardDescription className="text-xs">
                     {activeAgent === 'coach' && coachSession === 'active'
                       ? 'Practice Session Active'
-                      : 'Online'}
+                      : 'Online • Powered by AI'}
                   </CardDescription>
                 </div>
               </div>
-              {activeAgent === 'coach' && (
-                <div>
-                  {coachSession === 'idle' && (
-                    <SoundButton variant="hero" size="sm" onClick={startCoachSession}>
-                      <Play size={14} />
-                      Start Practice
-                    </SoundButton>
-                  )}
-                  {coachSession === 'active' && (
-                    <SoundButton variant="outline" size="sm" onClick={endCoachSession}>
-                      <Pause size={14} />
-                      End Session
-                    </SoundButton>
-                  )}
-                </div>
-              )}
+              <div className="flex gap-2">
+                {activeAgent !== 'coach' && chatId && (
+                  <SoundButton
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowHandoffDialog(true)}
+                  >
+                    <ArrowRightLeft size={14} />
+                    Handoff
+                  </SoundButton>
+                )}
+                {activeAgent === 'coach' && (
+                  <div>
+                    {coachSession === 'idle' && (
+                      <SoundButton variant="hero" size="sm" onClick={startCoachSession}>
+                        <Play size={14} />
+                        Start Practice
+                      </SoundButton>
+                    )}
+                    {coachSession === 'active' && (
+                      <SoundButton variant="outline" size="sm" onClick={endCoachSession}>
+                        <Pause size={14} />
+                        End Session
+                      </SoundButton>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-80 pr-4">
               <div className="space-y-4">
-                {chatMessages.map((msg) => (
+                {messages.map((msg) => (
                   <div
                     key={msg.id}
                     className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
@@ -269,7 +323,7 @@ const AIAgentsPage = () => {
                           : 'bg-muted'
                       }`}
                     >
-                      <p className="text-sm">{msg.content}</p>
+                      <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                       <p className="text-xs opacity-70 mt-1">
                         {format(msg.timestamp, 'h:mm a')}
                       </p>
@@ -286,8 +340,8 @@ const AIAgentsPage = () => {
                     <div className="bg-muted p-3 rounded-lg">
                       <div className="flex gap-1">
                         <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" />
-                        <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce delay-100" />
-                        <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce delay-200" />
+                        <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce [animation-delay:0.1s]" />
+                        <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce [animation-delay:0.2s]" />
                       </div>
                     </div>
                   </div>
@@ -301,10 +355,11 @@ const AIAgentsPage = () => {
                   placeholder="Type your message..."
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                  onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                  disabled={isTyping}
                 />
                 <SoundButton onClick={handleSendMessage} disabled={!inputMessage.trim() || isTyping}>
-                  <Send size={16} />
+                  {isTyping ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                 </SoundButton>
               </div>
             )}
@@ -313,6 +368,7 @@ const AIAgentsPage = () => {
 
         {/* Sidebar */}
         <div className="space-y-4">
+          {/* Coach Performance Report */}
           {activeAgent === 'coach' && coachSession === 'completed' && coachScore && (
             <Card>
               <CardHeader className="pb-3">
@@ -336,13 +392,54 @@ const AIAgentsPage = () => {
                 </div>
                 <div className="flex items-center justify-between p-2 bg-primary/10 rounded">
                   <span className="text-sm font-medium">Overall Score</span>
-                  <Badge className="bg-accent">{coachScore.overall}/10</Badge>
+                  <Badge className="bg-accent text-accent-foreground">{coachScore.overall}/10</Badge>
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">{coachScore.feedback}</p>
               </CardContent>
             </Card>
           )}
 
+          {/* Available Handoffs */}
+          {availableChats.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Users size={16} />
+                  Available for Handoff
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {availableChats.slice(0, 3).map((chat) => (
+                  <div key={chat.id} className="p-2 bg-muted/50 rounded space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">{chat.clientName}</span>
+                      <Badge variant="outline" className="text-xs">{chat.agentType}</Badge>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 h-7 text-xs"
+                        onClick={() => handleViewHistory(chat.id)}
+                      >
+                        <History size={12} className="mr-1" />
+                        View History
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="flex-1 h-7 text-xs"
+                        onClick={() => handleAcceptHandoff(chat)}
+                      >
+                        Accept
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Agent Capabilities */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Agent Capabilities</CardTitle>
@@ -400,7 +497,7 @@ const AIAgentsPage = () => {
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <CheckCircle size={14} className="text-accent" />
-                    <span>Performance scoring</span>
+                    <span>AI-powered performance scoring</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <CheckCircle size={14} className="text-accent" />
@@ -412,6 +509,82 @@ const AIAgentsPage = () => {
           </Card>
         </div>
       </div>
+
+      {/* Handoff Dialog */}
+      <Dialog open={showHandoffDialog} onOpenChange={setShowHandoffDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Request Chat Handoff</DialogTitle>
+            <DialogDescription>
+              Transfer this chat to another available agent. The chat history will be preserved for seamless continuation.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Reason for Handoff</label>
+              <Textarea
+                placeholder="e.g., Going on leave, need specialist assistance..."
+                value={handoffReason}
+                onChange={(e) => setHandoffReason(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowHandoffDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleRequestHandoff}>
+              Request Handoff
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Chat History Dialog */}
+      <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Chat History</DialogTitle>
+            <DialogDescription>
+              Review the conversation before accepting the handoff.
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="h-96">
+            <div className="space-y-3 p-4">
+              {selectedChatHistory.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
+                >
+                  <Avatar className="h-6 w-6">
+                    <AvatarFallback className={msg.role === 'user' ? 'bg-primary/20' : 'bg-muted'}>
+                      {msg.role === 'user' ? 'U' : 'A'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div
+                    className={`max-w-[80%] p-2 rounded-lg text-sm ${
+                      msg.role === 'user'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted'
+                    }`}
+                  >
+                    {msg.content}
+                  </div>
+                </div>
+              ))}
+              {selectedChatHistory.length === 0 && (
+                <p className="text-center text-muted-foreground">No messages in this chat yet.</p>
+              )}
+            </div>
+          </ScrollArea>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowHistoryDialog(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
