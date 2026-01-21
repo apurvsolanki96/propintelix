@@ -14,6 +14,123 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_chats: {
+        Row: {
+          agent_id: string
+          agent_type: string
+          client_id: string | null
+          created_at: string
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_id: string
+          agent_type?: string
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string
+          agent_type?: string
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_chats_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_handoffs: {
+        Row: {
+          chat_id: string
+          completed_at: string | null
+          created_at: string
+          from_agent_id: string
+          id: string
+          reason: string | null
+          status: string
+          to_agent_id: string
+        }
+        Insert: {
+          chat_id: string
+          completed_at?: string | null
+          created_at?: string
+          from_agent_id: string
+          id?: string
+          reason?: string | null
+          status?: string
+          to_agent_id: string
+        }
+        Update: {
+          chat_id?: string
+          completed_at?: string | null
+          created_at?: string
+          from_agent_id?: string
+          id?: string
+          reason?: string | null
+          status?: string
+          to_agent_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_handoffs_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "agent_chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_messages: {
+        Row: {
+          chat_id: string
+          content: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          role: string
+        }
+        Insert: {
+          chat_id: string
+          content: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          role: string
+        }
+        Update: {
+          chat_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "agent_chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_briefs: {
         Row: {
           brief_type: string | null
@@ -291,6 +408,39 @@ export type Database = {
           summary?: string | null
           title?: string
           url?: string | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          metadata: Json | null
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          metadata?: Json | null
+          read?: boolean
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          metadata?: Json | null
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
         }
         Relationships: []
       }
