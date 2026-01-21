@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
@@ -12,76 +11,48 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import useSound from '@/hooks/useSound';
-
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: 'info' | 'success' | 'warning' | 'meeting' | 'client';
-  read: boolean;
-  createdAt: Date;
-}
+import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 
 const NotificationsDropdown = () => {
   const { playNotification, playClick } = useSound();
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: '1',
-      title: 'New Meeting Scheduled',
-      message: 'Meeting with Tata Consultancy scheduled for tomorrow at 10 AM',
-      type: 'meeting',
-      read: false,
-      createdAt: new Date(Date.now() - 1000 * 60 * 30), // 30 mins ago
-    },
-    {
-      id: '2',
-      title: 'Client Verified',
-      message: 'Infosys Ltd has been verified successfully',
-      type: 'success',
-      read: false,
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    },
-    {
-      id: '3',
-      title: 'AI Brief Generated',
-      message: 'New market intelligence brief is ready for review',
-      type: 'info',
-      read: true,
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-    },
-    {
-      id: '4',
-      title: 'Upcoming Meeting Reminder',
-      message: 'Don\'t forget your meeting with Wipro at 3 PM today',
-      type: 'warning',
-      read: false,
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5 hours ago
-    },
-  ]);
+  const { 
+    notifications, 
+    loading, 
+    unreadCount, 
+    markAsRead, 
+    markAllAsRead, 
+    deleteNotification 
+  } = useRealtimeNotifications();
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const [prevUnreadCount, setPrevUnreadCount] = useState(0);
 
-  const markAsRead = (id: string) => {
-    playClick();
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
-  };
-
-  const markAllAsRead = () => {
-    playClick();
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  };
-
-  const deleteNotification = (id: string) => {
-    playClick();
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-  };
+  // Play notification sound when new notifications arrive
+  useEffect(() => {
+    if (unreadCount > prevUnreadCount && prevUnreadCount !== 0) {
+      playNotification();
+    }
+    setPrevUnreadCount(unreadCount);
+  }, [unreadCount, prevUnreadCount, playNotification]);
 
   const handleOpenChange = (open: boolean) => {
     if (open && unreadCount > 0) {
       playNotification();
     }
+  };
+
+  const handleMarkAsRead = (id: string) => {
+    playClick();
+    markAsRead(id);
+  };
+
+  const handleMarkAllAsRead = () => {
+    playClick();
+    markAllAsRead();
+  };
+
+  const handleDelete = (id: string) => {
+    playClick();
+    deleteNotification(id);
   };
 
   const getTypeColor = (type: string) => {
@@ -119,7 +90,7 @@ const NotificationsDropdown = () => {
               variant="ghost"
               size="sm"
               className="text-xs h-7 gap-1"
-              onClick={markAllAsRead}
+              onClick={handleMarkAllAsRead}
             >
               <CheckCheck size={14} />
               Mark all read
@@ -127,9 +98,13 @@ const NotificationsDropdown = () => {
           )}
         </div>
         <ScrollArea className="h-80">
-          {notifications.length === 0 ? (
+          {loading ? (
             <div className="p-6 text-center text-sm text-muted-foreground">
-              No notifications
+              Loading notifications...
+            </div>
+          ) : notifications.length === 0 ? (
+            <div className="p-6 text-center text-sm text-muted-foreground">
+              No notifications yet
             </div>
           ) : (
             <div className="py-1">
@@ -162,7 +137,7 @@ const NotificationsDropdown = () => {
                           variant="ghost"
                           size="icon"
                           className="h-6 w-6"
-                          onClick={() => markAsRead(notification.id)}
+                          onClick={() => handleMarkAsRead(notification.id)}
                         >
                           <Check size={12} />
                         </Button>
@@ -171,7 +146,7 @@ const NotificationsDropdown = () => {
                         variant="ghost"
                         size="icon"
                         className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                        onClick={() => deleteNotification(notification.id)}
+                        onClick={() => handleDelete(notification.id)}
                       >
                         <Trash2 size={12} />
                       </Button>

@@ -54,7 +54,7 @@ const Home = () => {
   const stats = [
     { value: '40%', label: 'Faster Deal Closure' },
     { value: '5hrs', label: 'Saved Per Week' },
-    { value: '₹2.5Cr+', label: 'Deals Influenced' },
+    { value: '₹25Cr+', label: 'Deals Influenced' },
     { value: '98%', label: 'Client Satisfaction' },
   ];
 

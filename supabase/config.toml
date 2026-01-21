@@ -2,3 +2,9 @@ project_id = "ygxyiperkzwobexaphsa"
 
 [functions.generate-ai-brief]
 verify_jwt = false
+
+[functions.ai-agent-chat]
+verify_jwt = false
+
+[functions.coach-evaluate]
+verify_jwt = false
