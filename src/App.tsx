@@ -29,6 +29,7 @@ import AnalyticsPage from "./pages/dashboard/AnalyticsPage";
 import RequirementsPage from "./pages/dashboard/RequirementsPage";
 import DataExportPage from "./pages/dashboard/DataExportPage";
 import AIAgentsPage from "./pages/dashboard/AIAgentsPage";
+import FeedbackAnalyticsPage from "./pages/dashboard/FeedbackAnalyticsPage";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,7 @@ const App = () => (
                 <Route path="ai-briefs" element={<AIBriefsPage />} />
                 <Route path="ai-agents" element={<AIAgentsPage />} />
                 <Route path="export" element={<DataExportPage />} />
+                <Route path="feedback" element={<FeedbackAnalyticsPage />} />
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="settings" element={<SettingsPage />} />
               </Route>

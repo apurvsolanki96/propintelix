@@ -102,20 +102,24 @@ const Pricing = () => {
           </span>
           <button
             onClick={() => setIsYearly(!isYearly)}
-            className={`relative w-14 h-7 rounded-full transition-colors duration-200 ${
-              isYearly ? 'bg-primary' : 'bg-secondary'
+            className={`relative w-14 h-8 rounded-full transition-colors duration-300 ${
+              isYearly ? 'bg-primary' : 'bg-muted'
             }`}
           >
             <span
-              className={`absolute top-1 w-5 h-5 rounded-full bg-foreground transition-transform duration-200 ${
-                isYearly ? 'translate-x-8' : 'translate-x-1'
+              className={`absolute top-1 left-1 w-6 h-6 rounded-full bg-background shadow-md transition-transform duration-300 ${
+                isYearly ? 'translate-x-6' : 'translate-x-0'
               }`}
             />
           </button>
-          <span className={`text-sm ${isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
+          <span className={`text-sm font-medium ${isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
             Yearly
-            <span className="ml-2 text-accent font-medium">Save 17%</span>
           </span>
+          {isYearly && (
+            <span className="ml-1 px-2 py-0.5 rounded-full bg-accent/20 text-accent text-xs font-semibold">
+              Save 17%
+            </span>
+          )}
         </div>
       </div>
 

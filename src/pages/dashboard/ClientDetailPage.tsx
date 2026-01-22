@@ -24,8 +24,11 @@ import {
   Loader2,
   Save,
   Sparkles,
+  UserX,
+  Trophy,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import ClientFeedbackModal from '@/components/dashboard/ClientFeedbackModal';
 
 const ClientDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -38,6 +41,8 @@ const ClientDetailPage = () => {
   const [company, setCompany] = useState<any>(null);
   const [meetings, setMeetings] = useState<any[]>([]);
   const [requirements, setRequirements] = useState<any[]>([]);
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+  const [feedbackType, setFeedbackType] = useState<'removal' | 'deal_closure'>('removal');
   const [formData, setFormData] = useState({
     name: '',
     sector: '',
@@ -227,11 +232,46 @@ const ClientDetailPage = () => {
           </div>
           <p className="text-muted-foreground text-sm">{company?.sector}</p>
         </div>
-        <Button variant="hero" onClick={handleSave} disabled={saving}>
-          {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save size={16} className="mr-2" />}
-          Save Changes
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setFeedbackType('removal');
+              setFeedbackModalOpen(true);
+            }}
+            className="text-destructive hover:bg-destructive/10 gap-2"
+          >
+            <UserX size={16} />
+            Remove Client
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setFeedbackType('deal_closure');
+              setFeedbackModalOpen(true);
+            }}
+            className="text-accent hover:bg-accent/10 gap-2"
+          >
+            <Trophy size={16} />
+            Close Deal
+          </Button>
+          <Button variant="hero" onClick={handleSave} disabled={saving}>
+            {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save size={16} className="mr-2" />}
+            Save Changes
+          </Button>
+        </div>
       </div>
+
+      {/* Feedback Modal */}
+      {company && (
+        <ClientFeedbackModal
+          open={feedbackModalOpen}
+          onOpenChange={setFeedbackModalOpen}
+          company={{ id: company.id, name: company.name }}
+          feedbackType={feedbackType}
+          onSuccess={() => navigate('/dashboard/clients')}
+        />
+      )}
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Main Form */}

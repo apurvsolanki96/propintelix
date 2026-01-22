@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.coach-evaluate]
 verify_jwt = false
+
+[functions.send-otp]
+verify_jwt = false
+
+[functions.verify-otp-login]
+verify_jwt = false
