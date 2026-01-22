@@ -586,7 +586,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_otp: {
+        Args: {
+          p_expires_minutes?: number
+          p_identifier: string
+          p_identifier_type: string
+          p_otp_code: string
+        }
+        Returns: string
+      }
+      verify_otp: {
+        Args: { p_identifier: string; p_otp_code: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

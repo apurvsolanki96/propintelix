@@ -18,6 +18,7 @@ import {
   Download,
   Sparkles,
   User,
+  MessageSquare,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -36,6 +37,7 @@ const navItems = [
   { to: '/dashboard/news', icon: Newspaper, label: 'News & Intel' },
   { to: '/dashboard/ai-briefs', icon: Brain, label: 'AI Briefs' },
   { to: '/dashboard/ai-agents', icon: Sparkles, label: 'AI Agents' },
+  { to: '/dashboard/feedback', icon: MessageSquare, label: 'Feedback' },
   { to: '/dashboard/export', icon: Download, label: 'Export' },
   { to: '/dashboard/profile', icon: User, label: 'Profile' },
 ];
