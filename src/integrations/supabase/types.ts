@@ -176,6 +176,101 @@ export type Database = {
           },
         ]
       }
+      auth_otps: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          identifier: string
+          identifier_type: string
+          otp_code: string
+          verified: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          identifier: string
+          identifier_type: string
+          otp_code: string
+          verified?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          identifier?: string
+          identifier_type?: string
+          otp_code?: string
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
+      client_feedback: {
+        Row: {
+          additional_comments: string | null
+          communication_rating: number | null
+          company_id: string | null
+          competitor_name: string | null
+          created_at: string
+          deal_value: string | null
+          feedback_type: string
+          id: string
+          improvement_suggestions: string | null
+          is_repeat_customer: boolean | null
+          overall_rating: number | null
+          professionalism_rating: number | null
+          reason: string | null
+          response_time_rating: number | null
+          user_id: string
+          would_recommend: boolean | null
+        }
+        Insert: {
+          additional_comments?: string | null
+          communication_rating?: number | null
+          company_id?: string | null
+          competitor_name?: string | null
+          created_at?: string
+          deal_value?: string | null
+          feedback_type: string
+          id?: string
+          improvement_suggestions?: string | null
+          is_repeat_customer?: boolean | null
+          overall_rating?: number | null
+          professionalism_rating?: number | null
+          reason?: string | null
+          response_time_rating?: number | null
+          user_id: string
+          would_recommend?: boolean | null
+        }
+        Update: {
+          additional_comments?: string | null
+          communication_rating?: number | null
+          company_id?: string | null
+          competitor_name?: string | null
+          created_at?: string
+          deal_value?: string | null
+          feedback_type?: string
+          id?: string
+          improvement_suggestions?: string | null
+          is_repeat_customer?: boolean | null
+          overall_rating?: number | null
+          professionalism_rating?: number | null
+          reason?: string | null
+          response_time_rating?: number | null
+          user_id?: string
+          would_recommend?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_feedback_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_requirements: {
         Row: {
           area_sqft: string | null
@@ -241,6 +336,7 @@ export type Database = {
           name: string
           revenue: string | null
           sector: string | null
+          status: string | null
           updated_at: string
           user_id: string
           verification_token: string | null
@@ -258,6 +354,7 @@ export type Database = {
           name: string
           revenue?: string | null
           sector?: string | null
+          status?: string | null
           updated_at?: string
           user_id: string
           verification_token?: string | null
@@ -275,6 +372,7 @@ export type Database = {
           name?: string
           revenue?: string | null
           sector?: string | null
+          status?: string | null
           updated_at?: string
           user_id?: string
           verification_token?: string | null
