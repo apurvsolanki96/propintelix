@@ -1,10 +1,21 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Input validation schema
+const messageSchema = z.object({
+  role: z.enum(["user", "assistant"]),
+  content: z.string().max(5000),
+});
+
+const inputSchema = z.object({
+  messages: z.array(messageSchema).min(1).max(50),
+});
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -12,9 +23,31 @@ serve(async (req) => {
   }
 
   try {
-    const { messages } = await req.json();
+    // Parse and validate input
+    const rawInput = await req.json();
+    const parseResult = inputSchema.safeParse(rawInput);
+    
+    if (!parseResult.success) {
+      console.error("Validation error:", parseResult.error.errors);
+      return new Response(
+        JSON.stringify({ 
+          error: "Invalid input", 
+          details: parseResult.error.errors.map(e => e.message).join(", ")
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    const authHeader = req.headers.get("Authorization")!;
+    const { messages } = parseResult.data;
+
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
@@ -22,9 +55,14 @@ serve(async (req) => {
     );
 
     const { data: { user } } = await supabaseClient.auth.getUser();
-    if (!user) throw new Error("Unauthorized");
+    if (!user) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    const conversationText = messages.map((m: any) => 
+    const conversationText = messages.map((m) => 
       `${m.role === 'user' ? 'Sales Rep' : 'CFO'}: ${m.content}`
     ).join('\n');
 

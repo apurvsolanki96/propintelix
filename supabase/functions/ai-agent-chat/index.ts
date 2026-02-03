@@ -1,10 +1,24 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Input validation schema
+const messageSchema = z.object({
+  role: z.enum(["user", "assistant", "system"]),
+  content: z.string().max(10000),
+});
+
+const inputSchema = z.object({
+  agent_type: z.enum(["coordinator", "marketpulse", "coach"]),
+  message: z.string().min(1).max(5000),
+  chat_id: z.string().uuid().optional().nullable(),
+  context: z.array(messageSchema).max(20).optional(),
+});
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -12,9 +26,31 @@ serve(async (req) => {
   }
 
   try {
-    const { agent_type, message, chat_id, context } = await req.json();
+    // Parse and validate input
+    const rawInput = await req.json();
+    const parseResult = inputSchema.safeParse(rawInput);
+    
+    if (!parseResult.success) {
+      console.error("Validation error:", parseResult.error.errors);
+      return new Response(
+        JSON.stringify({ 
+          error: "Invalid input", 
+          details: parseResult.error.errors.map(e => e.message).join(", ")
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    const authHeader = req.headers.get("Authorization")!;
+    const { agent_type, message, chat_id, context } = parseResult.data;
+
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
@@ -22,7 +58,29 @@ serve(async (req) => {
     );
 
     const { data: { user } } = await supabaseClient.auth.getUser();
-    if (!user) throw new Error("Unauthorized");
+    if (!user) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // If chat_id is provided, verify ownership
+    if (chat_id) {
+      const { data: chat, error: chatError } = await supabaseClient
+        .from("agent_chats")
+        .select("id")
+        .eq("id", chat_id)
+        .eq("user_id", user.id)
+        .single();
+
+      if (chatError || !chat) {
+        return new Response(
+          JSON.stringify({ error: "Chat not found or access denied" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
 
     // Build system prompt based on agent type
     let systemPrompt = "";
@@ -132,7 +190,7 @@ Keep responses in character as the CFO throughout the practice session.`;
     const aiResponse = await response.json();
     const content = aiResponse.choices[0].message.content;
 
-    // Save message to database if chat_id provided
+    // Save message to database if chat_id provided (already verified ownership above)
     if (chat_id) {
       // Save user message
       await supabaseClient.from("agent_messages").insert({

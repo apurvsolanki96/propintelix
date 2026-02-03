@@ -43,15 +43,10 @@ const MeetingsPage = () => {
     setGenerating(meeting.id);
 
     try {
+      // Only pass meeting_id - server fetches and validates all other data
       const response = await supabase.functions.invoke('generate-ai-brief', {
         body: {
           meeting_id: meeting.id,
-          company_id: meeting.company_id,
-          company_name: meeting.companies?.name,
-          company_sector: meeting.companies?.sector,
-          meeting_title: meeting.title,
-          meeting_date: meeting.meeting_date,
-          agenda: meeting.agenda,
         },
       });
 
